@@ -123,7 +123,6 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
@@ -134,7 +133,6 @@ public class Main {
 
             tweetList.add(date + "\n@" + screenName + " - " + status.getText());
         }
-
 
         model.put("records", tweetList);
         return "show";
@@ -160,7 +158,6 @@ public class Main {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-
 
         Map<String, Integer> tweetCount = new HashMap();
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
