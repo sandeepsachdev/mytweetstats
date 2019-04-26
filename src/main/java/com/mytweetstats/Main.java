@@ -25,14 +25,22 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.view.RedirectView;
+import twitter4j.*;
+import twitter4j.auth.AccessToken;
+import twitter4j.auth.RequestToken;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 @Controller
 @SpringBootApplication
@@ -49,8 +57,94 @@ public class Main {
   }
 
   @RequestMapping("/")
-  String index() {
-    return "index";
+  RedirectView login(HttpServletRequest request, HttpSession session) {
+
+    Twitter twitter = new TwitterFactory().getInstance();
+    session.setAttribute("twitter", twitter);
+    RequestToken requestToken = null;
+
+    try {
+      StringBuffer callbackURL =  request.getRequestURL();
+      int index = callbackURL.lastIndexOf("/");
+      callbackURL.replace(index, callbackURL.length(), "").append("/callback");
+
+      requestToken = twitter.getOAuthRequestToken(callbackURL.toString());
+      session.setAttribute("requestToken", requestToken);
+      return new RedirectView(requestToken.getAuthenticationURL());
+
+    } catch (TwitterException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+  }
+
+  @RequestMapping("/callback")
+  RedirectView callback(HttpServletRequest request, HttpSession session) {
+
+    Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+    RequestToken requestToken = (RequestToken) request.getSession().getAttribute("requestToken");
+    String verifier = request.getParameter("oauth_verifier");
+    try {
+      twitter.getOAuthAccessToken(requestToken, verifier);
+      request.getSession().removeAttribute("requestToken");
+    } catch (TwitterException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+
+    return new RedirectView(request.getContextPath() + "/show");
+
+  }
+
+
+  @RequestMapping("/show")
+  String show(HttpServletRequest request, Map<String, Object> model) {
+
+    ArrayList<String> tweetList = new ArrayList<String>();
+    Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+
+    // If session expired then force login again
+    if (twitter == null) {
+      return "redirect:/";
+    }
+
+    User user = null;
+    List<Status> statuses = null;
+    try {
+      user = twitter.verifyCredentials();
+      statuses = twitter.getHomeTimeline();
+    } catch (TwitterException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+
+
+    Map<String, Integer> tweetCount = new HashMap();
+    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+    sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+
+    System.out.println("Showing @" + user.getScreenName() + "(" + user.getName() + ")" + "'s home timeline.");
+    for (Status status : statuses) {
+      String date = sdf.format(status.getCreatedAt());
+      String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")" ;
+
+      tweetList.add(date + "\n@" + screenName  + " - " + status.getText());
+      tweetCount.put(screenName, tweetCount.getOrDefault(screenName, 0) + 1);
+    }
+
+    // Sort users by number of tweets
+    Map<String, Integer> sortedMap = tweetCount.entrySet().stream()
+            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+    ArrayList<String> topTweeters = new ArrayList<String>();
+    for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+      topTweeters.add(Integer.toString(entry.getValue()) + ' ' + entry.getKey());
+    }
+
+    topTweeters.addAll(tweetList);
+    model.put("records", topTweeters);
+    return "show";
   }
 
   @RequestMapping("/db")
