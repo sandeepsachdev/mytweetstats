@@ -113,29 +113,36 @@ public class Main {
             return "redirect:/";
         }
 
-        User user = null;
-        List<Status> statuses = null;
-        try {
-            user = twitter.verifyCredentials();
-            statuses = twitter.getHomeTimeline();
-        } catch (TwitterException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
+        List<Status> statuses = getTweets(twitter);
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
-        System.out.println("Showing @" + user.getScreenName() + "(" + user.getName() + ")" + "'s home timeline.");
         for (Status status : statuses) {
             String date = sdf.format(status.getCreatedAt());
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-
             tweetList.add(date + "\n@" + screenName + " - " + status.getText());
         }
 
         model.put("records", tweetList);
         return "show";
+    }
+
+    private List<Status> getTweets(Twitter twitter) {
+
+        List<Status> statuses = null;
+        try {
+
+            statuses = twitter.getHomeTimeline();
+            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
+
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return statuses;
     }
 
 
@@ -149,25 +156,14 @@ public class Main {
             return "redirect:/";
         }
 
-        User user = null;
-        List<Status> statuses = null;
-        try {
-            user = twitter.verifyCredentials();
-            statuses = twitter.getHomeTimeline();
-        } catch (TwitterException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        List<Status> statuses = getTweets(twitter);
 
         Map<String, Integer> tweetCount = new HashMap();
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
-        System.out.println("Showing @" + user.getScreenName() + "(" + user.getName() + ")" + "'s home timeline.");
         for (Status status : statuses) {
-            String date = sdf.format(status.getCreatedAt());
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-
             tweetCount.put(screenName, tweetCount.getOrDefault(screenName, 0) + 1);
         }
 
