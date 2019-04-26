@@ -133,10 +133,10 @@ public class Main {
         try {
 
             statuses = twitter.getHomeTimeline();
-            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
-            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
-            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
-            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
 
         } catch (TwitterException e) {
             e.printStackTrace();
