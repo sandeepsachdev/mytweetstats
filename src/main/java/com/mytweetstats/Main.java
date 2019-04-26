@@ -46,137 +46,179 @@ import java.util.stream.Collectors;
 @SpringBootApplication
 public class Main {
 
-  @Value("${spring.datasource.url}")
-  private String dbUrl;
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
 
-  @Autowired
-  private DataSource dataSource;
+    @Autowired
+    private DataSource dataSource;
 
-  public static void main(String[] args) throws Exception {
-    SpringApplication.run(Main.class, args);
-  }
-
-  @RequestMapping("/")
-  RedirectView login(HttpServletRequest request, HttpSession session) {
-
-    Twitter twitter = new TwitterFactory().getInstance();
-    session.setAttribute("twitter", twitter);
-    RequestToken requestToken = null;
-
-    try {
-      StringBuffer callbackURL =  request.getRequestURL();
-      int index = callbackURL.lastIndexOf("/");
-      callbackURL.replace(index, callbackURL.length(), "").append("/callback");
-
-      requestToken = twitter.getOAuthRequestToken(callbackURL.toString());
-      session.setAttribute("requestToken", requestToken);
-      return new RedirectView(requestToken.getAuthenticationURL());
-
-    } catch (TwitterException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
-  }
-
-  @RequestMapping("/callback")
-  RedirectView callback(HttpServletRequest request, HttpSession session) {
-
-    Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
-    RequestToken requestToken = (RequestToken) request.getSession().getAttribute("requestToken");
-    String verifier = request.getParameter("oauth_verifier");
-    try {
-      twitter.getOAuthAccessToken(requestToken, verifier);
-      request.getSession().removeAttribute("requestToken");
-    } catch (TwitterException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(Main.class, args);
     }
 
-    return new RedirectView(request.getContextPath() + "/show");
+    @RequestMapping("/")
+    RedirectView login(HttpServletRequest request, HttpSession session) {
 
-  }
+        Twitter twitter = new TwitterFactory().getInstance();
+        session.setAttribute("twitter", twitter);
+        RequestToken requestToken = null;
 
+        try {
+            StringBuffer callbackURL = request.getRequestURL();
+            int index = callbackURL.lastIndexOf("/");
+            callbackURL.replace(index, callbackURL.length(), "").append("/callback");
 
-  @RequestMapping("/show")
-  String show(HttpServletRequest request, Map<String, Object> model) {
+            requestToken = twitter.getOAuthRequestToken(callbackURL.toString());
+            session.setAttribute("requestToken", requestToken);
+            return new RedirectView(requestToken.getAuthenticationURL());
 
-    ArrayList<String> tweetList = new ArrayList<String>();
-    Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
-
-    // If session expired then force login again
-    if (twitter == null) {
-      return "redirect:/";
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
-    User user = null;
-    List<Status> statuses = null;
-    try {
-      user = twitter.verifyCredentials();
-      statuses = twitter.getHomeTimeline();
-    } catch (TwitterException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
+    @RequestMapping("/callback")
+    RedirectView callback(HttpServletRequest request, HttpSession session) {
+
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+        RequestToken requestToken = (RequestToken) request.getSession().getAttribute("requestToken");
+        String verifier = request.getParameter("oauth_verifier");
+        try {
+            twitter.getOAuthAccessToken(requestToken, verifier);
+            request.getSession().removeAttribute("requestToken");
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return new RedirectView(request.getContextPath() + "/about");
+
+    }
+
+    @RequestMapping("/about")
+    String about(HttpServletRequest request, Map<String, Object> model) {
+        return "about";
     }
 
 
-    Map<String, Integer> tweetCount = new HashMap();
-    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
-    sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+    @RequestMapping("/recent")
+    String recent(HttpServletRequest request, Map<String, Object> model) {
 
-    System.out.println("Showing @" + user.getScreenName() + "(" + user.getName() + ")" + "'s home timeline.");
-    for (Status status : statuses) {
-      String date = sdf.format(status.getCreatedAt());
-      String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")" ;
+        ArrayList<String> tweetList = new ArrayList<String>();
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
 
-      tweetList.add(date + "\n@" + screenName  + " - " + status.getText());
-      tweetCount.put(screenName, tweetCount.getOrDefault(screenName, 0) + 1);
+        // If session expired then force login again
+        if (twitter == null) {
+            return "redirect:/";
+        }
+
+        User user = null;
+        List<Status> statuses = null;
+        try {
+            user = twitter.verifyCredentials();
+            statuses = twitter.getHomeTimeline();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+
+        System.out.println("Showing @" + user.getScreenName() + "(" + user.getName() + ")" + "'s home timeline.");
+        for (Status status : statuses) {
+            String date = sdf.format(status.getCreatedAt());
+            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+
+            tweetList.add(date + "\n@" + screenName + " - " + status.getText());
+        }
+
+
+        model.put("records", tweetList);
+        return "show";
     }
 
-    // Sort users by number of tweets
-    Map<String, Integer> sortedMap = tweetCount.entrySet().stream()
-            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
-    ArrayList<String> topTweeters = new ArrayList<String>();
-    for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-      topTweeters.add(Integer.toString(entry.getValue()) + ' ' + entry.getKey());
+    @RequestMapping("/topusers")
+    String topusers(HttpServletRequest request, Map<String, Object> model) {
+
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+
+        // If session expired then force login again
+        if (twitter == null) {
+            return "redirect:/";
+        }
+
+        User user = null;
+        List<Status> statuses = null;
+        try {
+            user = twitter.verifyCredentials();
+            statuses = twitter.getHomeTimeline();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+
+        Map<String, Integer> tweetCount = new HashMap();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+
+        System.out.println("Showing @" + user.getScreenName() + "(" + user.getName() + ")" + "'s home timeline.");
+        for (Status status : statuses) {
+            String date = sdf.format(status.getCreatedAt());
+            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+
+            tweetCount.put(screenName, tweetCount.getOrDefault(screenName, 0) + 1);
+        }
+
+        // Sort users by number of tweets
+        Map<String, Integer> sortedMap = tweetCount.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+        ArrayList<String> topTweeters = new ArrayList<String>();
+        for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+            topTweeters.add(Integer.toString(entry.getValue()) + ' ' + entry.getKey());
+        }
+
+        model.put("records", topTweeters);
+        return "show";
     }
 
-    topTweeters.addAll(tweetList);
-    model.put("records", topTweeters);
-    return "show";
-  }
 
-  @RequestMapping("/db")
-  String db(Map<String, Object> model) {
-    try (Connection connection = dataSource.getConnection()) {
-      Statement stmt = connection.createStatement();
-      stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
-      stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
-      ResultSet rs = stmt.executeQuery("SELECT tick FROM ticks");
+    @RequestMapping("/db")
+    String db(Map<String, Object> model) {
+        try (Connection connection = dataSource.getConnection()) {
+            Statement stmt = connection.createStatement();
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
+            stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
+            ResultSet rs = stmt.executeQuery("SELECT tick FROM ticks");
 
-      ArrayList<String> output = new ArrayList<String>();
-      while (rs.next()) {
-        output.add("Read from DB: " + rs.getTimestamp("tick"));
-      }
+            ArrayList<String> output = new ArrayList<String>();
+            while (rs.next()) {
+                output.add("Read from DB: " + rs.getTimestamp("tick"));
+            }
 
-      model.put("records", output);
-      return "db";
-    } catch (Exception e) {
-      model.put("message", e.getMessage());
-      return "error";
+            model.put("records", output);
+            return "db";
+        } catch (Exception e) {
+            model.put("message", e.getMessage());
+            return "error";
+        }
     }
-  }
 
-  @Bean
-  public DataSource dataSource() throws SQLException {
-    if (dbUrl == null || dbUrl.isEmpty()) {
-      return new HikariDataSource();
-    } else {
-      HikariConfig config = new HikariConfig();
-      config.setJdbcUrl(dbUrl);
-      return new HikariDataSource(config);
+    @Bean
+    public DataSource dataSource() throws SQLException {
+        if (dbUrl == null || dbUrl.isEmpty()) {
+            return new HikariDataSource();
+        } else {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(dbUrl);
+            return new HikariDataSource(config);
+        }
     }
-  }
 
 }
