@@ -97,8 +97,15 @@ public class Main {
     }
 
     @RequestMapping("/about")
-    String about(HttpServletRequest request, Map<String, Object> model) {
+    String about(HttpServletRequest request, HttpSession session, Map<String, Object> model) {
+
+
+        Twitter twitter = (Twitter) session.getAttribute("twitter");
+        List<Status> statuses = getTweets(twitter);
+        session.setAttribute("statuses", statuses);
+
         return "about";
+
     }
 
 
@@ -113,7 +120,7 @@ public class Main {
             return "redirect:/";
         }
 
-        List<Status> statuses = getTweets(twitter);
+        List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
@@ -141,11 +148,12 @@ public class Main {
         List<Status> statuses = null;
         try {
 
+            // Get last 100 tweets
             statuses = twitter.getHomeTimeline();
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
+
 
         } catch (TwitterException e) {
             e.printStackTrace();
@@ -165,7 +173,7 @@ public class Main {
             return "redirect:/";
         }
 
-        List<Status> statuses = getTweets(twitter);
+        List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
 
         Map<String, Integer> tweetCount = new HashMap();
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
@@ -191,7 +199,7 @@ public class Main {
             return "redirect:/";
         }
 
-        List<Status> statuses = getTweets(twitter);
+        List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
 
         Map<String, Integer> clientCount = new HashMap();
         Map<String, String> userClient = new HashMap();
@@ -226,7 +234,7 @@ public class Main {
             return "redirect:/";
         }
 
-        List<Status> statuses = getTweets(twitter);
+        List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
 
         Map<String, Integer> clientCount = new HashMap();
 
