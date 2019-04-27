@@ -136,11 +136,12 @@ public class Main {
         }
 
         model.put("records", tweetList);
-        model.put("header", "The last " + statuses.size() + " tweets from your feed");
+        model.put("heading", "The last " + statuses.size() + " tweets from your feed");
         return "show";
     }
 
     private List<Status> getTweets(Twitter twitter) {
+
 
         User user = null;
         try {
@@ -192,7 +193,7 @@ public class Main {
         ArrayList<String> topTweeters = sortAndConvertMapToStringList(tweetCount);
 
         model.put("records", topTweeters);
-        model.put("header", "Tweets per user in your feed");
+        model.put("heading", "Tweets per user in your feed");
         return "show";
     }
 
@@ -228,7 +229,7 @@ public class Main {
         ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
 
         model.put("records", topClients);
-        model.put("header", "People using each Twitter client in your feed");
+        model.put("heading", "People using each Twitter client in your feed");
         return "show";
     }
 
@@ -257,7 +258,7 @@ public class Main {
         ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
 
         model.put("records", topClients);
-        model.put("header", "People in your feed sorted by total tweets overall");
+        model.put("heading", "People in your feed sorted by total tweets overall");
         return "show";
     }
 
@@ -282,7 +283,7 @@ public class Main {
         ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
 
         model.put("records", topClients);
-        model.put("header", "People in your feed sorted by total followers overall");
+        model.put("heading", "People in your feed sorted by total followers overall");
         return "show";
     }
 
