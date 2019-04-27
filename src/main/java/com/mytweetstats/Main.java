@@ -129,6 +129,15 @@ public class Main {
 
     private List<Status> getTweets(Twitter twitter) {
 
+        User user = null;
+        try {
+            user = twitter.verifyCredentials();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(user.getRateLimitStatus());
+
         List<Status> statuses = null;
         try {
 
@@ -166,7 +175,77 @@ public class Main {
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
             tweetCount.put(screenName, tweetCount.getOrDefault(screenName, 0) + 1);
         }
+        ArrayList<String> topTweeters = sortAndConvertMapToStringList(tweetCount);
 
+        model.put("records", topTweeters);
+        return "show";
+    }
+
+    @RequestMapping("/topclients")
+    String topClients(HttpServletRequest request, Map<String, Object> model) {
+
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+
+        // If session expired then force login again
+        if (twitter == null) {
+            return "redirect:/";
+        }
+
+        List<Status> statuses = getTweets(twitter);
+
+        Map<String, Integer> clientCount = new HashMap();
+        Map<String, String> userClient = new HashMap();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+
+        for (Status status : statuses) {
+            String sourceUrl = status.getSource();
+            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            String client =  sourceUrl.substring(sourceUrl.indexOf('>') +1, sourceUrl.length()-4) ;
+            userClient.put(screenName, client);
+        }
+
+        for (Map.Entry<String, String> entry : userClient.entrySet()) {
+            clientCount.put(entry.getValue(), clientCount.getOrDefault(entry.getValue(), 0) + 1);
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        }
+
+        ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
+
+        model.put("records", topClients);
+        return "show";
+    }
+
+    @RequestMapping("/toptweeters")
+    String topTweeters(HttpServletRequest request, Map<String, Object> model) {
+
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+
+        // If session expired then force login again
+        if (twitter == null) {
+            return "redirect:/";
+        }
+
+        List<Status> statuses = getTweets(twitter);
+
+        Map<String, Integer> clientCount = new HashMap();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+
+        for (Status status : statuses) {
+            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            clientCount.put(screenName, status.getUser().getStatusesCount());
+        }
+
+        ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
+
+        model.put("records", topClients);
+        return "show";
+    }
+
+
+    private ArrayList<String> sortAndConvertMapToStringList(Map<String, Integer> tweetCount) {
         // Sort users by number of tweets
         Map<String, Integer> sortedMap = tweetCount.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
@@ -176,9 +255,7 @@ public class Main {
         for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
             topTweeters.add(Integer.toString(entry.getValue()) + ' ' + entry.getKey());
         }
-
-        model.put("records", topTweeters);
-        return "show";
+        return topTweeters;
     }
 
 
