@@ -252,6 +252,30 @@ public class Main {
         return "show";
     }
 
+    @RequestMapping("/topfollowers")
+    String topFollowers(HttpServletRequest request, Map<String, Object> model) {
+
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
+
+        // If session expired then force login again
+        if (twitter == null) {
+            return "redirect:/";
+        }
+
+        List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
+        Map<String, Integer> clientCount = new HashMap();
+
+        for (Status status : statuses) {
+            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            clientCount.put(screenName, status.getUser().getFollowersCount());
+        }
+
+        ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
+
+        model.put("records", topClients);
+        return "show";
+    }
+
 
     private ArrayList<String> sortAndConvertMapToStringList(Map<String, Integer> tweetCount) {
         // Sort users by number of tweets
