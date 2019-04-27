@@ -27,7 +27,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.view.RedirectView;
 import twitter4j.*;
-import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 import javax.servlet.http.HttpServletRequest;
@@ -99,8 +98,13 @@ public class Main {
     @RequestMapping("/about")
     String about(HttpServletRequest request, HttpSession session, Map<String, Object> model) {
 
+        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
 
-        Twitter twitter = (Twitter) session.getAttribute("twitter");
+        // If session expired then force login again
+        if (twitter == null) {
+            return "redirect:/";
+        }
+
         List<Status> statuses = getTweets(twitter);
         session.setAttribute("statuses", statuses);
 
