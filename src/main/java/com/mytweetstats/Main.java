@@ -27,6 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.view.RedirectView;
 import twitter4j.*;
+import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 import javax.servlet.http.HttpServletRequest;
@@ -135,10 +136,17 @@ public class Main {
         }
 
         model.put("records", tweetList);
+        model.put("header", "The last " + statuses.size() + " tweets from your feed");
         return "show";
     }
 
     private List<Status> getTweets(Twitter twitter) {
+
+        twitter = new TwitterFactory().getInstance();
+        twitter.setOAuthConsumer("K84DuwpskukJ5eLt5bZZQHqkx", "cbJ2S2xHW7rIz01evDv1byD9hnuDWb02jnpV2D9BpixgWglgAO");
+        twitter.setOAuthAccessToken(new AccessToken(
+                "10673082-c8flvPrvpF7hqNCMDeEtCRfpxtJnTFO23U9RtCjTj",
+                "6QL1ejFj5oC811KH3fdCAJVbJsmwKagxfeEjcnxMA6ymV"));
 
         User user = null;
         try {
@@ -190,6 +198,7 @@ public class Main {
         ArrayList<String> topTweeters = sortAndConvertMapToStringList(tweetCount);
 
         model.put("records", topTweeters);
+        model.put("header", "Tweets per user in your feed");
         return "show";
     }
 
@@ -225,6 +234,7 @@ public class Main {
         ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
 
         model.put("records", topClients);
+        model.put("header", "People using each Twitter client in your feed");
         return "show";
     }
 
@@ -253,6 +263,7 @@ public class Main {
         ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
 
         model.put("records", topClients);
+        model.put("header", "People in your feed sorted by total tweets overall");
         return "show";
     }
 
@@ -277,6 +288,7 @@ public class Main {
         ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
 
         model.put("records", topClients);
+        model.put("header", "People in your feed sorted by total followers overall");
         return "show";
     }
 
