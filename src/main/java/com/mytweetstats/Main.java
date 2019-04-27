@@ -142,12 +142,6 @@ public class Main {
 
     private List<Status> getTweets(Twitter twitter) {
 
-        twitter = new TwitterFactory().getInstance();
-        twitter.setOAuthConsumer("K84DuwpskukJ5eLt5bZZQHqkx", "cbJ2S2xHW7rIz01evDv1byD9hnuDWb02jnpV2D9BpixgWglgAO");
-        twitter.setOAuthAccessToken(new AccessToken(
-                "10673082-c8flvPrvpF7hqNCMDeEtCRfpxtJnTFO23U9RtCjTj",
-                "6QL1ejFj5oC811KH3fdCAJVbJsmwKagxfeEjcnxMA6ymV"));
-
         User user = null;
         try {
             user = twitter.verifyCredentials();
