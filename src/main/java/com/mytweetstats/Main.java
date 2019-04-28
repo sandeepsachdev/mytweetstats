@@ -85,6 +85,12 @@ public class Main {
         }
     }
 
+    @RequestMapping("/logout")
+    RedirectView logout(HttpServletRequest request, HttpSession session) {
+        session.invalidate();
+        return new RedirectView("/about");
+
+    }
     @RequestMapping("/callback")
     RedirectView callback(HttpServletRequest request, HttpSession session) {
 
@@ -107,16 +113,6 @@ public class Main {
 
     @RequestMapping("/about")
     String about(HttpServletRequest request, HttpSession session, Map<String, Object> model) {
-
-        Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
-
-        // If session expired then force login again
-        if (twitter == null) {
-            return "redirect:/";
-        }
-
-
-
         return "about";
 
     }
