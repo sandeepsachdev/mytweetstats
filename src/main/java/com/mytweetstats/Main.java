@@ -136,7 +136,6 @@ public class Main {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
-
         Autolink autolink = new Autolink();
         autolink.setUrlTarget("_");
         for (Status status : statuses) {
@@ -154,7 +153,7 @@ public class Main {
 
         model.put("records", tweetList);
         model.put("heading", "The last " + statuses.size() + " tweets from your feed");
-        return "show";
+        return "recent";
     }
 
 
@@ -175,10 +174,10 @@ public class Main {
 
             // Get last 100 tweets
             statuses = twitter.getHomeTimeline();
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
-//            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
 
 
         } catch (TwitterException e) {
@@ -204,12 +203,13 @@ public class Main {
         Map<String, Integer> tweetCount = new HashMap();
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+        Autolink autolink = new Autolink();
 
         for (Status status : statuses) {
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            tweetCount.put(screenName, tweetCount.getOrDefault(screenName, 0) + 1);
+            tweetCount.put(autolink.autoLink(screenName), tweetCount.getOrDefault(screenName, 0) + 1);
         }
-        ArrayList<String> topTweeters = sortAndConvertMapToStringList(tweetCount);
+        ArrayList<Stat> topTweeters = sortAndConvertMapToStat(tweetCount);
 
         model.put("records", topTweeters);
         model.put("heading", "Tweets per user in your feed");
@@ -245,10 +245,10 @@ public class Main {
             System.out.println(entry.getKey() + " " + entry.getValue());
         }
 
-        ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
+        ArrayList<Stat> topClients = sortAndConvertMapToStat(clientCount);
 
         model.put("records", topClients);
-        model.put("heading", "People using each Twitter client in your feed");
+        model.put("heading", "Twitter clients used in your feed");
         return "show";
     }
 
@@ -269,15 +269,16 @@ public class Main {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
+        Autolink autolink = new Autolink();
         for (Status status : statuses) {
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            clientCount.put(screenName, status.getUser().getStatusesCount());
+            clientCount.put(autolink.autoLink(screenName), status.getUser().getStatusesCount());
         }
 
-        ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
+        ArrayList<Stat> topClients = sortAndConvertMapToStat(clientCount);
 
         model.put("records", topClients);
-        model.put("heading", "People in your feed sorted by total tweets overall");
+        model.put("heading", "Users in your feed sorted by total tweets overall");
         return "show";
     }
 
@@ -294,15 +295,17 @@ public class Main {
         List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
         Map<String, Integer> clientCount = new HashMap();
 
+        Autolink autolink = new Autolink();
+
         for (Status status : statuses) {
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            clientCount.put(screenName, status.getUser().getFollowersCount());
+            clientCount.put(autolink.autoLink(screenName), status.getUser().getFollowersCount());
         }
 
-        ArrayList<String> topClients = sortAndConvertMapToStringList(clientCount);
+        ArrayList<Stat> topClients = sortAndConvertMapToStat(clientCount);
 
         model.put("records", topClients);
-        model.put("heading", "People in your feed sorted by total followers overall");
+        model.put("heading", "Users in your feed sorted by total followers");
         return "show";
     }
 
@@ -320,6 +323,21 @@ public class Main {
         return topTweeters;
     }
 
+    private ArrayList<Stat> sortAndConvertMapToStat(Map<String, Integer> tweetCount) {
+        // Sort users by number of tweets
+        Map<String, Integer> sortedMap = tweetCount.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+        ArrayList<Stat> topTweeters = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+            Stat stat = new Stat();
+            stat.setFirstCol(Integer.toString(entry.getValue()));
+            stat.setSecondCol(entry.getKey());
+            topTweeters.add(stat);
+        }
+        return topTweeters;
+    }
 
     @RequestMapping("/db")
     String db(Map<String, Object> model) {
