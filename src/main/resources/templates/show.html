@@ -5,7 +5,7 @@
 
 <div class="container" style="border: 5px">
     <h1 th:text="${heading}" ></h1>
-    <div th:each="record : ${records}" style="border: 5px;  padding: 9px 12px; border-bottom: 1px solid #e6ecf0;">
+    <div th:each="record : ${records}" style="width: 563px; border: 5px;  padding: 9px 12px; border-bottom: 1px solid #e6ecf0;">
        <div th:utext="*{record.time}"></div>
         <div th:utext="*{record.user}"></div>
         <div th:utext="*{record.text}"></div>
