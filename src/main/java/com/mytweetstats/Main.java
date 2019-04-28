@@ -94,6 +94,8 @@ public class Main {
         try {
             twitter.getOAuthAccessToken(requestToken, verifier);
             request.getSession().removeAttribute("requestToken");
+            List<Status> statuses = getTweets(twitter);
+            session.setAttribute("statuses", statuses);
         } catch (TwitterException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -113,8 +115,7 @@ public class Main {
             return "redirect:/";
         }
 
-        List<Status> statuses = getTweets(twitter);
-        session.setAttribute("statuses", statuses);
+
 
         return "about";
 
