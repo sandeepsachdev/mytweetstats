@@ -16,6 +16,7 @@
 
 package com.mytweetstats;
 
+import com.twitter.twittertext.Autolink;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import twitter4j.*;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
+import twitter4j.conf.ConfigurationBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -59,7 +61,12 @@ public class Main {
     @RequestMapping("/")
     RedirectView login(HttpServletRequest request, HttpSession session) {
 
-        Twitter twitter = new TwitterFactory().getInstance();
+        ConfigurationBuilder cb = new ConfigurationBuilder();
+        cb.setDebugEnabled(true).setTweetModeExtended(true);
+
+        TwitterFactory tf = new TwitterFactory(cb.build());
+        Twitter twitter = tf.getInstance();
+
         session.setAttribute("twitter", twitter);
         RequestToken requestToken = null;
 
@@ -129,16 +136,23 @@ public class Main {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
+
+        Autolink autolink = new Autolink();
+        autolink.setUrlTarget("_");
         for (Status status : statuses) {
             String date = sdf.format(status.getCreatedAt());
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            tweetList.add(date + "\n@" + screenName + " - " + status.getText());
+            String text = autolink.autoLink(status.getText());
+            tweetList.add(date + "\n@" + screenName + " - " + text);
+
+
         }
 
         model.put("records", tweetList);
         model.put("heading", "The last " + statuses.size() + " tweets from your feed");
         return "show";
     }
+
 
     private List<Status> getTweets(Twitter twitter) {
 
@@ -160,6 +174,7 @@ public class Main {
             statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
             statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
             statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
+            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
 
 
         } catch (TwitterException e) {
@@ -217,7 +232,7 @@ public class Main {
         for (Status status : statuses) {
             String sourceUrl = status.getSource();
             String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            String client =  sourceUrl.substring(sourceUrl.indexOf('>') +1, sourceUrl.length()-4) ;
+            String client = sourceUrl.substring(sourceUrl.indexOf('>') + 1, sourceUrl.length() - 4);
             userClient.put(screenName, client);
         }
 
