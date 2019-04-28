@@ -3,11 +3,13 @@
 
 <body>
 
-<div class="container">
+<div class="container" style="border: 5px">
     <h1 th:text="${heading}" ></h1>
-    <ul th:each="record : ${records}">
-        <li th:utext="${record}"/>
-    </ul>
+    <div th:each="record : ${records}" style="border: 5px;  padding: 9px 12px; border-bottom: 1px solid #e6ecf0;">
+       <div th:utext="*{record.time}"></div>
+        <div th:utext="*{record.user}"></div>
+        <div th:utext="*{record.text}"></div>
+    </div>
 </div>
 
 </body>

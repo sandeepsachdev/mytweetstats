@@ -124,7 +124,7 @@ public class Main {
     @RequestMapping("/recent")
     String recent(HttpServletRequest request, Map<String, Object> model) {
 
-        ArrayList<String> tweetList = new ArrayList<String>();
+        ArrayList<Tweet> tweetList = new ArrayList<>();
         Twitter twitter = (Twitter) request.getSession().getAttribute("twitter");
 
         // If session expired then force login again
@@ -133,17 +133,21 @@ public class Main {
         }
 
         List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
 
         Autolink autolink = new Autolink();
         autolink.setUrlTarget("_");
         for (Status status : statuses) {
-            String date = sdf.format(status.getCreatedAt());
-            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            String text = autolink.autoLink(status.getText());
-            tweetList.add(date + "\n@" + screenName + " - " + text);
+
+            Tweet tweet = new Tweet();
+            tweet.setTime(sdf.format(status.getCreatedAt()));
+            tweet.setUser(autolink.autoLink('@' + status.getUser().getScreenName() +
+                    " (" + status.getUser().getName() + ")"));
+
+            tweet.setText(autolink.autoLink(status.getText()));
+            tweetList.add(tweet);
 
 
         }
@@ -171,10 +175,10 @@ public class Main {
 
             // Get last 100 tweets
             statuses = twitter.getHomeTimeline();
-            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
-            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
-            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
-            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(2)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(3)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(4)));
+//            statuses.addAll(twitter.getHomeTimeline(new Paging(5)));
 
 
         } catch (TwitterException e) {
