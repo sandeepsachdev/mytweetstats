@@ -207,7 +207,7 @@ public class Main {
         Autolink autolink = new Autolink();
 
         for (Status status : statuses) {
-            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            String screenName = "@" + status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
             tweetCount.put(autolink.autoLink(screenName), tweetCount.getOrDefault(screenName, 0) + 1);
         }
         ArrayList<Stat> topTweeters = sortAndConvertMapToStat(tweetCount);
@@ -236,7 +236,7 @@ public class Main {
 
         for (Status status : statuses) {
             String sourceUrl = status.getSource();
-            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            String screenName = "@" + status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
             String client = sourceUrl.substring(sourceUrl.indexOf('>') + 1, sourceUrl.length() - 4);
             userClient.put(screenName, client);
         }
@@ -272,7 +272,7 @@ public class Main {
 
         Autolink autolink = new Autolink();
         for (Status status : statuses) {
-            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            String screenName = "@" +  status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
             clientCount.put(autolink.autoLink(screenName), status.getUser().getStatusesCount());
         }
 
@@ -299,7 +299,7 @@ public class Main {
         Autolink autolink = new Autolink();
 
         for (Status status : statuses) {
-            String screenName = status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
+            String screenName = "@" + status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
             clientCount.put(autolink.autoLink(screenName), status.getUser().getFollowersCount());
         }
 

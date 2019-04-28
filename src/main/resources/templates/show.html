@@ -9,7 +9,7 @@
     <table style=" border-collapse: collapse; width: 100%;">
        <thead> <tr><th>Count</th><th>User</th></thead>
         <tbody th:each="record : ${records}">
-            <tr><td th:text="*{record.firstCol}"></td><td th:text="*{record.secondCol}"></td></tr>
+            <tr><td th:text="*{record.firstCol}"></td><td th:utext="*{record.secondCol}"></td></tr>
         </tbody>
     </table>
 </div>
