@@ -208,7 +208,7 @@ public class Main {
 
         for (Status status : statuses) {
             String screenName = "@" + status.getUser().getScreenName() + " (" + status.getUser().getName() + ")";
-            tweetCount.put(autolink.autoLink(screenName), tweetCount.getOrDefault(screenName, 0) + 1);
+            tweetCount.put(autolink.autoLink(screenName), tweetCount.getOrDefault(autolink.autoLink(screenName), 0) + 1);
         }
         ArrayList<Stat> topTweeters = sortAndConvertMapToStat(tweetCount);
 
