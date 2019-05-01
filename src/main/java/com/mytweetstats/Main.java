@@ -347,7 +347,7 @@ public class Main {
 
             ArrayList<String> output = new ArrayList<String>();
             while (rs.next()) {
-                output.add("Read from DB: " + rs.getString("username ") + rs.getTimestamp("tick"));
+                output.add("Read from DB: " + rs.getString("username") + " " + rs.getTimestamp("tick"));
             }
 
             model.put("records", output);
