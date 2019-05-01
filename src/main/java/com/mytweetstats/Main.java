@@ -336,6 +336,28 @@ public class Main {
         return topTweeters;
     }
 
+    @RequestMapping("/logins")
+    String logins(Map<String, Object> model) {
+        try (Connection connection = dataSource.getConnection()) {
+            Statement stmt = connection.createStatement();
+
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS logins (varchar username,  tick timestamp)");
+            stmt.executeUpdate("INSERT INTO logins VALUES ('ssachdev (Sandeep Sachdev)', now())");
+            ResultSet rs = stmt.executeQuery("SELECT username, tick FROM logins");
+
+            ArrayList<String> output = new ArrayList<String>();
+            while (rs.next()) {
+                output.add("Read from DB: " + rs.getString("username " + rs.getTimestamp("tick")));
+            }
+
+            model.put("records", output);
+            return "db";
+        } catch (Exception e) {
+            model.put("message", e.getMessage());
+            return "error";
+        }
+    }
+
     @RequestMapping("/db")
     String db(Map<String, Object> model) {
         try (Connection connection = dataSource.getConnection()) {
