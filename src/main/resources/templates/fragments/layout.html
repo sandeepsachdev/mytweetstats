@@ -32,6 +32,9 @@
                 <li id="nav-topclients" th:classappend="${(#httpServletRequest.requestURL.toString().contains('topclients')) ? 'active' : ''}">
                     <a href="/topclients"><span class="glyphicon glyphicon-user"></span> User Stats: Client Apps</a>
                 </li>
+                <li id="nav-logins" th:classappend="${(#httpServletRequest.requestURL.toString().contains('logins')) ? 'active' : ''}">
+                    <a href="/logins"><span class="glyphicon glyphicon-user"></span>Visitors</a>
+                </li>
                 <li>
 
                 </ul>

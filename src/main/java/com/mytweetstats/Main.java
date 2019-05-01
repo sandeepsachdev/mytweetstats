@@ -359,7 +359,7 @@ public class Main {
             ResultSet rs = stmt.executeQuery("SELECT username, tick FROM logins");
 
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
             sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
             ArrayList<String> output = new ArrayList<String>();
