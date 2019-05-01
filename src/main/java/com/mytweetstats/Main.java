@@ -121,6 +121,7 @@ public class Main {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         return new RedirectView(request.getContextPath() + "/about");
@@ -146,8 +147,7 @@ public class Main {
         }
 
         List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+        SimpleDateFormat sdf = getSimpleDateFormat("HH:mm");
 
         Autolink autolink = new Autolink();
         autolink.setUrlTarget("_");
@@ -214,8 +214,7 @@ public class Main {
         List<Status> statuses = (List<Status>) request.getSession().getAttribute("statuses");
 
         Map<String, Integer> tweetCount = new HashMap();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
-        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+        SimpleDateFormat sdf = getSimpleDateFormat("dd-MM HH:mm");
         Autolink autolink = new Autolink();
 
         for (Status status : statuses) {
@@ -243,8 +242,7 @@ public class Main {
 
         Map<String, Integer> clientCount = new HashMap();
         Map<String, String> userClient = new HashMap();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
-        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+        SimpleDateFormat sdf = getSimpleDateFormat("dd-MM HH:mm");
 
         for (Status status : statuses) {
             String sourceUrl = status.getSource();
@@ -279,8 +277,7 @@ public class Main {
 
         Map<String, Integer> clientCount = new HashMap();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
-        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+        SimpleDateFormat sdf = getSimpleDateFormat("dd-MM HH:mm");
 
         Autolink autolink = new Autolink();
         for (Status status : statuses) {
@@ -357,10 +354,7 @@ public class Main {
         try (Connection connection = dataSource.getConnection()) {
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT username, tick FROM logins");
-
-
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-            sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+            SimpleDateFormat sdf = getSimpleDateFormat("dd/MM/yy HH:mm:ss");
 
             ArrayList<String> output = new ArrayList<String>();
             while (rs.next()) {
@@ -377,6 +371,12 @@ public class Main {
             model.put("message", e.getMessage());
             return "error";
         }
+    }
+
+    private SimpleDateFormat getSimpleDateFormat(String s) {
+        SimpleDateFormat sdf = new SimpleDateFormat(s);
+        sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
+        return sdf;
     }
 
     @RequestMapping("/db")
