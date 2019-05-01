@@ -117,6 +117,7 @@ public class Main {
             Statement stmt = connection.createStatement();
 
             String userDetails =  user.getScreenName() + " (" + user.getName() + ")";
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS logins (username varchar,  tick timestamp)");
             stmt.executeUpdate("INSERT INTO logins VALUES ('"  + userDetails +  "', now())");
 
         } catch (SQLException e) {
