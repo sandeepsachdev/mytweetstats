@@ -341,7 +341,7 @@ public class Main {
         try (Connection connection = dataSource.getConnection()) {
             Statement stmt = connection.createStatement();
 
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS logins (varchar username,  tick timestamp)");
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS logins (username varchar,  tick timestamp)");
             stmt.executeUpdate("INSERT INTO logins VALUES ('ssachdev (Sandeep Sachdev)', now())");
             ResultSet rs = stmt.executeQuery("SELECT username, tick FROM logins");
 
