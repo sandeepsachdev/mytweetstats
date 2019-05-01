@@ -7,28 +7,29 @@
     <link rel="stylesheet" type="text/css" href="/stylesheets/main.css" />
 </head>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
 <body>
     <nav class="navbar navbar-default navbar-static-top navbar-inverse">
         <div class="container">
             <ul class="nav navbar-nav">
-                <li class="active">
+                <li id="nav-about" th:classappend="${(#httpServletRequest.requestURL.toString().contains('about')) ? 'active' : ''}">
                     <a href="/about"><span class="glyphicon glyphicon-home"></span> About</a>
                 </li>
-                <li>
+                <li id="nav-recent" class="" th:classappend="${(#httpServletRequest.requestURL.toString().contains('recent')) ? 'active' : ''}">
                     <a href="/recent"><span class="glyphicon glyphicon-user"></span> Recent Tweets</a>
                 </li>
-                <li>
+                <li id="nav-topusers" th:classappend="${(#httpServletRequest.requestURL.toString().contains('topusers')) ? 'active' : ''}">
                     <a href="/topusers"><span class="glyphicon glyphicon-user"></span> Tweets per user</a>
                 </li>
-                <li>
+                <li id="nav-toptweeters" th:classappend="${(#httpServletRequest.requestURL.toString().contains('toptweeters')) ? 'active' : ''}">
                     <a href="/toptweeters"><span class="glyphicon glyphicon-user"></span> User Stats: Tweets</a>
                 </li>
 
-                <li>
+                <li id="nav-topfollowers" th:classappend="${(#httpServletRequest.requestURL.toString().contains('topfollowers')) ? 'active' : ''}">
                     <a href="/topfollowers"><span class="glyphicon glyphicon-user"></span> User Stats: Followers</a>
                 </li>
-
-                <li>
+                <li id="nav-topclients" th:classappend="${(#httpServletRequest.requestURL.toString().contains('topclients')) ? 'active' : ''}">
                     <a href="/topclients"><span class="glyphicon glyphicon-user"></span> User Stats: Client Apps</a>
                 </li>
                 <li>
