@@ -35,12 +35,10 @@ import twitter4j.conf.ConfigurationBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -105,6 +103,24 @@ public class Main {
         } catch (TwitterException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        }
+
+        User user = null;
+        try {
+            user = twitter.verifyCredentials();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        try (Connection connection = dataSource.getConnection()) {
+            Statement stmt = connection.createStatement();
+
+            String userDetails =  user.getScreenName() + " (" + user.getName() + ")";
+            stmt.executeUpdate("INSERT INTO logins VALUES ("  + userDetails +  ", now())");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return new RedirectView(request.getContextPath() + "/about");
@@ -340,14 +356,19 @@ public class Main {
     String logins(Map<String, Object> model) {
         try (Connection connection = dataSource.getConnection()) {
             Statement stmt = connection.createStatement();
-
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS logins (username varchar,  tick timestamp)");
-            stmt.executeUpdate("INSERT INTO logins VALUES ('ssachdev (Sandeep Sachdev)', now())");
             ResultSet rs = stmt.executeQuery("SELECT username, tick FROM logins");
+
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM HH:mm");
+            sdf.setTimeZone(TimeZone.getTimeZone("Australia/NSW"));
 
             ArrayList<String> output = new ArrayList<String>();
             while (rs.next()) {
-                output.add("Read from DB: " + rs.getString("username") + " " + rs.getTimestamp("tick"));
+                Timestamp tick = rs.getTimestamp("tick");
+                String time =  sdf.format(new Date(tick.getTime()));
+                String username = rs.getString("username");
+
+                output.add("Login " + username + " " + time);
             }
 
             model.put("records", output);
