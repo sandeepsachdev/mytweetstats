@@ -17,40 +17,25 @@
 package com.mytweetstats;
 
 import com.twitter.twittertext.Autolink;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.view.RedirectView;
 import twitter4j.*;
-import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 import twitter4j.conf.ConfigurationBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
-import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Date;
 import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
 @SpringBootApplication
 public class Main {
-
-    @Value("${spring.datasource.url}")
-    private String dbUrl;
-
-    @Autowired
-    private DataSource dataSource;
 
     public static void main(String[] args) throws Exception {
         SpringApplication.run(Main.class, args);
@@ -109,18 +94,6 @@ public class Main {
         try {
             user = twitter.verifyCredentials();
         } catch (TwitterException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
-        try (Connection connection = dataSource.getConnection()) {
-            Statement stmt = connection.createStatement();
-
-            String userDetails =  user.getScreenName() + " (" + user.getName() + ")";
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS logins (username varchar,  tick timestamp)");
-            stmt.executeUpdate("INSERT INTO logins VALUES ('"  + userDetails +  "', now())");
-
-        } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
@@ -352,26 +325,9 @@ public class Main {
 
     @RequestMapping("/logins")
     String logins(Map<String, Object> model) {
-        try (Connection connection = dataSource.getConnection()) {
-            Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT username, tick FROM logins");
-            SimpleDateFormat sdf = getSimpleDateFormat("dd/MM/yy HH:mm:ss");
-
             ArrayList<String> output = new ArrayList<String>();
-            while (rs.next()) {
-                Timestamp tick = rs.getTimestamp("tick");
-                String time =  sdf.format(new Date(tick.getTime()));
-                String username = rs.getString("username");
-
-                output.add("Login " + username + " " + time);
-            }
-
             model.put("records", output);
             return "db";
-        } catch (Exception e) {
-            model.put("message", e.getMessage());
-            return "error";
-        }
     }
 
     private SimpleDateFormat getSimpleDateFormat(String s) {
@@ -382,34 +338,9 @@ public class Main {
 
     @RequestMapping("/db")
     String db(Map<String, Object> model) {
-        try (Connection connection = dataSource.getConnection()) {
-            Statement stmt = connection.createStatement();
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
-            stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
-            ResultSet rs = stmt.executeQuery("SELECT tick FROM ticks");
-
             ArrayList<String> output = new ArrayList<String>();
-            while (rs.next()) {
-                output.add("Read from DB: " + rs.getTimestamp("tick"));
-            }
-
             model.put("records", output);
             return "db";
-        } catch (Exception e) {
-            model.put("message", e.getMessage());
-            return "error";
-        }
-    }
-
-    @Bean
-    public DataSource dataSource() throws SQLException {
-        if (dbUrl == null || dbUrl.isEmpty()) {
-            return new HikariDataSource();
-        } else {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(dbUrl);
-            return new HikariDataSource(config);
-        }
     }
 
 }
